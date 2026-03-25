@@ -3,89 +3,66 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-export default function Login(){
+export default function LoginPage(){
 
 const router = useRouter()
 
 const [email,setEmail] = useState("")
 const [password,setPassword] = useState("")
-const [error,setError] = useState("")
-const [loading,setLoading] = useState(false)
 
-const handleLogin = async (e:React.FormEvent)=>{
+const handleLogin = async (e:any)=>{
 e.preventDefault()
-
-setLoading(true)
-setError("")
-
-try{
 
 const res = await fetch("http://localhost:5000/api/auth/login",{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
 },
-body:JSON.stringify({email,password})
+body:JSON.stringify({
+email,
+password
+})
 })
 
 const data = await res.json()
 
-if(!res.ok){
-setError(data.message || "Invalid credentials")
-setLoading(false)
-return
+console.log(data)
+
+if(res.ok){
+router.push(`/${data.user.username}`)
+}else{
+alert(data.message)
 }
-
-localStorage.setItem("token",data.token)
-
-router.push("/dashboard")
-
-}catch(err){
-setError("Server error")
-}
-
-setLoading(false)
 
 }
 
 return(
 
-<div className="min-h-screen flex items-center justify-center bg-gray-100">
+<div className="flex justify-center items-center min-h-screen">
 
-<form
-onSubmit={handleLogin}
-className="bg-white p-8 rounded-xl shadow-lg w-[380px]"
->
+<form onSubmit={handleLogin} className="bg-white p-8 shadow rounded w-96">
 
-<h2 className="text-2xl font-bold text-center mb-6">
-Login
-</h2>
+<h2 className="text-2xl font-bold mb-6">Login</h2>
 
 <input
 type="email"
 placeholder="Email"
-className="w-full border p-2 rounded mb-3"
+className="border w-full p-2 mb-4"
 value={email}
 onChange={(e)=>setEmail(e.target.value)}
-required
 />
 
 <input
 type="password"
 placeholder="Password"
-className="w-full border p-2 rounded mb-3"
+className="border w-full p-2 mb-4"
 value={password}
 onChange={(e)=>setPassword(e.target.value)}
-required
 />
 
-<button
-className="w-full bg-black text-white py-2 rounded"
->
-{loading ? "Logging in..." : "Login"}
+<button className="bg-black text-white w-full p-2 rounded">
+Login
 </button>
-
-{error && <p className="text-red-500 mt-3">{error}</p>}
 
 </form>
 

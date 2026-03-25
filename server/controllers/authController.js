@@ -85,6 +85,13 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    res.cookie("token", token, {
+  httpOnly: true,
+  secure: false, // true in production
+  sameSite: "strict",
+  maxAge: 24 * 60 * 60 * 1000
+   });
+
 res.json({
   message: "Login successful",
   token,

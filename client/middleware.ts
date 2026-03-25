@@ -13,5 +13,5 @@ return NextResponse.next();
 }
 
 export const config = {
-matcher: ["/:username*", "/dashboard*"],
+ matcher: ["/dashboard/:path*"],
 };
