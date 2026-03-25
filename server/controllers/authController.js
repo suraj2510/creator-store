@@ -3,29 +3,57 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const otpGenerator = require("otp-generator");
 
+//generate username
+const generateUsername = async (name) => {
 
+  let baseUsername = name.toLowerCase().replace(/\s+/g, "");
+
+  let username = baseUsername;
+  let counter = 1;
+
+  while (true) {
+
+    const existingUser = await pool.query(
+      "SELECT id FROM users WHERE username=$1",
+      [username]
+    );
+
+    if (existingUser.rows.length === 0) {
+      return username;
+    }
+
+    username = baseUsername + counter;
+    counter++;
+
+  }
+
+};
 //signup pages
-exports.signup = async (req, res) => {
-  try {
-    const { name, email, phone, password } = req.body;
+exports.signup = async (req,res)=>{
+  try{
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const {name,email,password} = req.body;
+
+    const hashedPassword = await bcrypt.hash(password,10);
+
+    const username = await generateUsername(name); // ✅ FIX
+    console.log("Generated username:", username);
 
     const user = await pool.query(
-      "INSERT INTO users(name,email,phone,password) VALUES($1,$2,$3,$4) RETURNING *",
-      [name, email, phone, hashedPassword]
+      "INSERT INTO users(name,email,password,username) VALUES($1,$2,$3,$4) RETURNING *",
+      [name,email,hashedPassword,username]
     );
 
     res.json({
-      message: "User registered",
-      user: user.rows[0],
+      message:"Signup successful",
+      user:user.rows[0]
     });
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+  }catch(err){
+    console.error(err);
+    res.status(500).send("Server error");
   }
-};
+}
 
 
 //login pages
@@ -57,15 +85,16 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-     res.json({
-   message: "Login successful",
+res.json({
+  message: "Login successful",
   token,
   user: {
     id: user.rows[0].id,
     name: user.rows[0].name,
-    email: user.rows[0].email
+    email: user.rows[0].email,
+    username: user.rows[0].username
   }
-     });
+});
 
   } catch (err) {
     console.error(err);
